@@ -1,3 +1,7 @@
+#Goal
+
+This project is a mere port of ST code STM32CubeExpansion_WIFI1_V1.1.0 (the socketclient)
+
 #Warning
 * to use the debugger you need to un-solder the r21 resistor on the WIFI board 
 
@@ -5,10 +9,6 @@
 I test a configuration including
 * NUCLEO 446RE
 * X-NUCLEO-IDW01M1 the WIFI serial board from ST
-
-#Goal
-
-This project is a mere port of ST code STM32CubeExpansion_WIFI1_V1.1.0 (the socketclient)
 
 #Prerequisite
 
