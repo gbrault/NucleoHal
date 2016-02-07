@@ -22,6 +22,7 @@ Here are the basic steps
 * Create a blank HAL project with SW4STM32 (AC6) Targeting the 446RE
 * Copied the Middlewares directory from ST WIFI sofwtare
 * added some include path to the eclipse project
+* added some source path as well
 * copied few more files from the Drivers directory (stm32_spwf_wifi.c and .h)
 * changed the stm32f4xx_it.c with Projects\Multi\Applications\Client_Socket\Src stm32_xx_it.c content, same for headers
 * added some symbols (check the list from the eclipse project file)
