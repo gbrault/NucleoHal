@@ -43,7 +43,7 @@
  
 #include <stdio.h>
 #include <stdlib.h>
-#include "stm32f4xx_nucleo.h"
+// #include "stm32f4xx_nucleo.h"
 #ifdef USE_STM32L0XX_NUCLEO
 #include "stm32l0xx_hal.h"
 #endif

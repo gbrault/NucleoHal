@@ -69,7 +69,7 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 WiFi_Status_t wifi_get_AP_settings(void);
-extern UART_HandleTypeDef UartHandle,UartMsgHandle;
+extern UART_HandleTypeDef UartMsgHandle;
 extern char print_msg_buff[512];
 
 /* Private functions ---------------------------------------------------------*/

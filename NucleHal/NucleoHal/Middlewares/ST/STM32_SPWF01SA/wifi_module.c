@@ -127,10 +127,10 @@ WiFi_Config_HandleTypeDef WiFi_Config_Variables;
 
 float fValue = 0;
 
-extern wifi_bool Trace_Mode_Enable;
-extern TIM_HandleTypeDef    TimHandle, PushTimHandle;
-extern uint8_t current_Node_Index;
-extern uint8_t Current_Node_Id;
+// extern wifi_bool Trace_Mode_Enable;
+extern TIM_HandleTypeDef    TimHandle; //, PushTimHandle;
+// extern uint8_t current_Node_Index;
+// extern uint8_t Current_Node_Id;
 
 __IO WiFi_WIND_State_TypeDef WiFi_WIND_State;//describes the current WIND number in processing
 

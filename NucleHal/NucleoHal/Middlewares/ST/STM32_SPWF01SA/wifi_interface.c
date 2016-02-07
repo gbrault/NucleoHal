@@ -69,14 +69,14 @@
 
 extern uint8_t WiFi_AT_Cmd_Buff[1024];
 extern char UserDataBuff[MAX_BUFFER_GLOBAL*2];
-extern char print_msg_buff[MAX_BUFFER_GLOBAL];
+// extern char print_msg_buff[MAX_BUFFER_GLOBAL];
 extern wifi_scan *wifi_scanned_list;//[15];
 
-extern UART_HandleTypeDef UartWiFiHandle,UartMsgHandle;
-extern volatile uint32_t tickcount;
+extern UART_HandleTypeDef UartWiFiHandle; //,UartMsgHandle;
+// extern volatile uint32_t tickcount;
 extern uint8_t user_scan_number;
 extern uint8_t SocketId; 
-extern uint32_t SockON_Data_Len;
+// extern uint32_t SockON_Data_Len;
 extern uint8_t no_of_open_client_sockets;
 extern wifi_bool open_sockets[8];//Max open sockets allowed is 8. Each array element depicts one socket (true=open, false=closed)
 extern wifi_bool Set_AT_Cmd_Response_False;
@@ -85,17 +85,17 @@ extern volatile uint8_t wifi_client_connected;
 extern wifi_bool switch_by_default_to_command_mode;
 extern wifi_bool command_mode;
 extern wifi_bool data_mode;
-extern uint8_t *WiFi_Scan_Buffer;
+// extern uint8_t *WiFi_Scan_Buffer;
 extern wifi_bool Scan_Ongoing;
 extern wifi_bool WiFi_Configuration_Done;
 extern WiFi_Config_HandleTypeDef WiFi_Config_Variables;
 extern wifi_bool AT_Cmd_Ongoing;
-extern GPIO_InitTypeDef  GPIO_InitStruct;
+// extern GPIO_InitTypeDef  GPIO_InitStruct;
 extern GPIO_InitTypeDef  WAKEUP_InitStruct;
 extern wifi_bool WiFi_Enabled;
-extern uint8_t gpio_value, gpio_dir, get_cfg_value[64];
+extern uint8_t gpio_value, gpio_dir; // , get_cfg_value[64];
 extern volatile uint8_t wifi_connected;
-extern __IO WiFi_WIND_State_TypeDef WiFi_WIND_State;
+// extern __IO WiFi_WIND_State_TypeDef WiFi_WIND_State;
 
 /**
   * @}

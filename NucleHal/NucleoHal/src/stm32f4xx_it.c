@@ -66,7 +66,7 @@ extern TIM_HandleTypeDef    TimHandle, PushTimHandle;
 /* Private function prototypes -----------------------------------------------*/
 void USARTx_IRQHandler(void);
 void USARTx_PRINT_IRQHandler(void);
-void USARTx_EXTI_IRQHandler(void);
+// void USARTx_EXTI_IRQHandler(void);
 void TIMx_IRQHandler(void);
 void TIMp_IRQHandler(void);
 
