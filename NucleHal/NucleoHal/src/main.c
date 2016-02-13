@@ -65,12 +65,16 @@
 #define WIFI_SCAN_BUFFER_LIST           15
 
 /* Private variables ---------------------------------------------------------*/
+I2S_HandleTypeDef hi2s2;
+DMA_HandleTypeDef hdma_i2s2_ext_rx;
   
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 WiFi_Status_t wifi_get_AP_settings(void);
 extern UART_HandleTypeDef UartMsgHandle;
 extern char print_msg_buff[512];
+static void MX_DMA_Init(void);
+static void MX_I2S2_Init(void);
 
 /* Private functions ---------------------------------------------------------*/
 #ifdef USART_PRINT_MSG
@@ -140,7 +144,12 @@ int main(void)
   UART_Msg_Gpio_Init();
   USART_PRINT_MSG_Configuration(115200);
 #endif      
-  
+
+  /* Initialize I2S1 */
+  MX_DMA_Init();
+  MX_I2S2_Init();
+
+  /* WIFI configuration */
   config.power=sleep;
   config.power_level=high;
   config.dhcp=on;//use DHCP IP address
@@ -169,7 +178,7 @@ int main(void)
   
   while (1)
   {
-
+    // WIFI Processing
     switch (wifi_state) 
     {      
       case wifi_state_reset:
@@ -262,7 +271,8 @@ int main(void)
         
       default:
       break;
-    }     
+    }
+  // Microphone processing if any
   }  
 }
 
@@ -552,6 +562,39 @@ void ind_wifi_resuming()
   //Change the state to connect to socket if not connected
   wifi_state = wifi_state_socket;
 }
+
+
+/* I2S2 init function */
+void MX_I2S2_Init(void)
+{
+
+  hi2s2.Instance = SPI2;
+  hi2s2.Init.Mode = I2S_MODE_MASTER_RX;
+  hi2s2.Init.Standard = I2S_STANDARD_PHILLIPS;
+  hi2s2.Init.DataFormat = I2S_DATAFORMAT_24B;
+  hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
+  hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_32K;
+  hi2s2.Init.CPOL = I2S_CPOL_LOW;
+  hi2s2.Init.ClockSource = I2S_CLOCK_PLL;
+  hi2s2.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_ENABLE;
+  HAL_I2S_Init(&hi2s2);
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+void MX_DMA_Init(void)
+{
+  /* DMA controller clock enable */
+  __DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+
+}
+
 
 /**
   * @}
