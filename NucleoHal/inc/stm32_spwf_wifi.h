@@ -89,7 +89,7 @@
 
 #endif //USE_STM32L0XX_NUCLEO
 
-#if defined (USE_STM32F1xx_NUCLEO) || (USE_STM32F4XX_NUCLEO) 
+#ifdef USE_STM32F4XX_NUCLEO
 
 #define WIFI_UART_MSG                           USART2
 #define USARTx_PRINT_CLK_ENABLE()              __HAL_RCC_USART2_CLK_ENABLE()

@@ -47,6 +47,8 @@
 * @{
 */
 
+/* External variables --------------------------------------------------------*/
+extern I2S_HandleTypeDef hi2s2;
 extern UART_HandleTypeDef UartWiFiHandle,UartMsgHandle;
 extern TIM_HandleTypeDef    TimHandle, PushTimHandle;
 
@@ -208,6 +210,9 @@ void SysTick_Handler(void)
 {
   HAL_IncTick();
   Wifi_SysTick_Isr();
+  // gbr
+  HAL_SYSTICK_IRQHandler();
+  // gbr
 }
 
 /**
@@ -259,6 +264,29 @@ void USARTx_PRINT_IRQHandler(void)
    HAL_UART_IRQHandler(&UartMsgHandle);
 }
 #endif
+
+//gbr
+/******************************************************************************/
+/* STM32F4xx Peripheral Interrupt Handlers                                    */
+/* Add here the Interrupt Handlers for the used peripherals.                  */
+/* For the available peripheral interrupt handler names,                      */
+/* please refer to the startup file (startup_stm32f4xx.s).                    */
+/******************************************************************************/
+
+/**
+* @brief This function handles SPI2 global interrupt.
+*/
+void SPI2_IRQHandler(void)
+{
+  /* USER CODE BEGIN SPI2_IRQn 0 */
+
+  /* USER CODE END SPI2_IRQn 0 */
+  HAL_I2S_IRQHandler(&hi2s2);
+  /* USER CODE BEGIN SPI2_IRQn 1 */
+
+  /* USER CODE END SPI2_IRQn 1 */
+}
+// gbr
 
 /**
   * @}

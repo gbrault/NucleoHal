@@ -60,7 +60,7 @@
 /* Prescaler declaration */
 uint32_t uwPrescalerValue = 0;  
 
-void HAL_GPIO_Init1(GPIO_TypeDef* GPIOx, GPIO_InitTypeDef* GPIO_InitStruct);
+// void HAL_GPIO_Init1(GPIO_TypeDef* GPIOx, GPIO_InitTypeDef* GPIO_InitStruct);
 
 /* TIM handle declaration */
 TIM_HandleTypeDef    TimHandle, PushTimHandle;
