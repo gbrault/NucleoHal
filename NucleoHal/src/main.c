@@ -66,7 +66,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 I2S_HandleTypeDef hi2s2;
-static GPIO_InitTypeDef  GPIO_InitStruct;
+static GPIO_InitTypeDef GPIO_InitStruct;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -77,7 +77,13 @@ extern char print_msg_buff[512];
 
 /* Private functions ---------------------------------------------------------*/
 #ifdef USART_PRINT_MSG
-#define print_uart(arg)    { memset(print_msg_buff, 0x00, sizeof(print_msg_buff)); \
+/*
+ #define print_uart(arg)    { memset(print_msg_buff, 0x00, sizeof(print_msg_buff)); \
+                         sprintf((char*)print_msg_buff,arg);   \
+                         HAL_UART_Transmit(&UartMsgHandle, (uint8_t*)print_msg_buff, strlen(print_msg_buff), 1000); }
+ */
+#define print_uart(arg)
+#define print_uart_user(arg)    { memset(print_msg_buff, 0x00, sizeof(print_msg_buff)); \
                          sprintf((char*)print_msg_buff,arg);   \
                          HAL_UART_Transmit(&UartMsgHandle, (uint8_t*)print_msg_buff, strlen(print_msg_buff), 1000); }
 #endif                       
@@ -120,26 +126,27 @@ uint8_t socket_open = 0;
 /**
  *
  */
-void init_blink(){
-/* -1- Enable GPIO Clock (to be able to program the configuration registers) */
- __HAL_RCC_GPIOA_CLK_ENABLE();
+void init_blink() {
+	/* -1- Enable GPIO Clock (to be able to program the configuration registers) */
+	__HAL_RCC_GPIOA_CLK_ENABLE()
+	;
 
- /* -2- Configure IO in output push-pull mode to drive external LEDs */
- GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
- GPIO_InitStruct.Pull  = GPIO_PULLUP;
- GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	/* -2- Configure IO in output push-pull mode to drive external LEDs */
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
 
- GPIO_InitStruct.Pin = GPIO_PIN_5;
- HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	GPIO_InitStruct.Pin = GPIO_PIN_5;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
- /* -3- Toggle IO in an infinite loop
- while (1)
- {
-   HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-   Insert delay 100 ms
-   HAL_Delay(100);
- }
- */
+	/* -3- Toggle IO in an infinite loop
+	 while (1)
+	 {
+	 HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+	 Insert delay 100 ms
+	 HAL_Delay(100);
+	 }
+	 */
 }
 
 /**
@@ -147,19 +154,25 @@ void init_blink(){
  * @param  None
  * @retval None
  */
+static long myTick = 0;
+static int32_t value;
+uint16_t Data[48];
 int main(void) {
 	uint8_t i = 0;
 	uint32_t tickblink = 0;
 	uint32_t tickwifi = 0;
 
 	tickblink = HAL_GetTick();
-	tickwifi=tickblink;
+	tickwifi = tickblink;
 	len = strlen(data);
 
 	WiFi_Status_t status = WiFi_MODULE_SUCCESS;
-	__GPIOA_CLK_ENABLE();
-	__GPIOB_CLK_ENABLE();
-	__GPIOC_CLK_ENABLE();
+	__GPIOA_CLK_ENABLE()
+	;
+	__GPIOB_CLK_ENABLE()
+	;
+	__GPIOC_CLK_ENABLE()
+	;
 
 	HAL_Init();
 
@@ -177,137 +190,169 @@ int main(void) {
 
 	init_blink();
 	MX_I2S2_Init();
+	__HAL_I2S_ENABLE(&hi2s2);
 
-	config.power = sleep;
-	config.power_level = high;
-	config.dhcp = on; //use DHCP IP address
-	config.web_server = WIFI_TRUE;
+	/*
+	 config.power = sleep;
+	 config.power_level = high;
+	 config.dhcp = on; //use DHCP IP address
+	 config.web_server = WIFI_TRUE;
 
-	wifi_state = wifi_state_idle;
+	 wifi_state = wifi_state_idle;
 
-	status = wifi_get_AP_settings();
-	if (status != WiFi_MODULE_SUCCESS) {
-		print_uart("\r\nError in AP Settings");
-		return 0;
-	}
+	 status = wifi_get_AP_settings();
+	 if (status != WiFi_MODULE_SUCCESS) {
+	 print_uart("\r\nError in AP Settings");
+	 return 0;
+	 }
 
-	print_uart("\r\n\nInitializing the wifi module...");
+	 print_uart("\r\n\nInitializing the wifi module...");
 
-	/* Init the wi-fi module */
-	status = wifi_init(&config);
-	if (status != WiFi_MODULE_SUCCESS) {
-		print_uart("Error in Config");
-		return 0;
-	}
+	 // Init the wi-fi module
+	 status = wifi_init(&config);
+	 if (status != WiFi_MODULE_SUCCESS) {
+	 print_uart("Error in Config");
+	 return 0;
+	 }
 
-	print_uart("\r\n\nConfig OK \r\n\n");
+	 print_uart("\r\n\nConfig OK \r\n\n");
+	 */
 
 	while (1) {
+		/*
+		 switch (wifi_state) {
+		 case wifi_state_reset:
+		 break;
 
-		switch (wifi_state) {
-		case wifi_state_reset:
-			break;
+		 case wifi_state_ready:
 
-		case wifi_state_ready:
+		 print_uart("\r\n >>running WiFi Scan...\r\n")
+		 ;
 
-			print_uart("\r\n >>running WiFi Scan...\r\n")
-			;
+		 status = wifi_network_scan(net_scan, WIFI_SCAN_BUFFER_LIST);
 
-			status = wifi_network_scan(net_scan, WIFI_SCAN_BUFFER_LIST);
+		 if (status == WiFi_MODULE_SUCCESS) {
+		 for (i = 0; i < WIFI_SCAN_BUFFER_LIST; i++) {
+		 //print_uart(net_scan[i].ssid);
+		 //print_uart("\r\n");
+		 if (((char *) strstr((const char *) net_scan[i].ssid,
+		 (const char *) console_ssid)) != NULL) {
+		 print_uart(
+		 "\r\n >>network present...connecting to AP...\r\n");
+		 SSID_found = WIFI_TRUE;
+		 wifi_connect((uint8_t *) console_ssid,
+		 (uint8_t *) console_psk, mode);
 
-			if (status == WiFi_MODULE_SUCCESS) {
-				for (i = 0; i < WIFI_SCAN_BUFFER_LIST; i++) {
-					//print_uart(net_scan[i].ssid);
-					//print_uart("\r\n");
-					if (((char *) strstr((const char *) net_scan[i].ssid,
-							(const char *) console_ssid)) != NULL) {
-						print_uart(
-								"\r\n >>network present...connecting to AP...\r\n");
-						SSID_found = WIFI_TRUE;
-						wifi_connect((uint8_t *) console_ssid,
-								(uint8_t *) console_psk, mode);
+		 break;
+		 }
+		 }
+		 if (!SSID_found) {
+		 print_uart("\r\nGiven SSID not found!\r\n");
+		 }
+		 memset(net_scan, 0x00, sizeof(net_scan));
 
-						break;
-					}
-				}
-				if (!SSID_found) {
-					print_uart("\r\nGiven SSID not found!\r\n");
-				}
-				memset(net_scan, 0x00, sizeof(net_scan));
+		 }
 
-			}
+		 wifi_state = wifi_state_idle;
 
-			wifi_state = wifi_state_idle;
+		 break;
 
-			break;
+		 case wifi_state_connected:
 
-		case wifi_state_connected:
+		 HAL_Delay(2000);                //Let module go to sleep
 
-			HAL_Delay(2000);                //Let module go to sleep
+		 print_uart("\r\n >>connected...\r\n")
+		 ;
 
-			print_uart("\r\n >>connected...\r\n")
-			;
+		 wifi_wakeup(WIFI_TRUE); // wakeup from sleep if module went to sleep
 
-			wifi_wakeup(WIFI_TRUE);/*wakeup from sleep if module went to sleep*/
+		 wifi_state = wifi_state_idle;
+		 break;
 
-			wifi_state = wifi_state_idle;
-			break;
+		 case wifi_state_disconnected:
+		 wifi_state = wifi_state_reset;
+		 break;
 
-		case wifi_state_disconnected:
-			wifi_state = wifi_state_reset;
-			break;
+		 case wifi_state_socket:
+		 print_uart("\r\n >>Connecting to socket\r\n")
+		 ;
 
-		case wifi_state_socket:
-			print_uart("\r\n >>Connecting to socket\r\n")
-			;
+		 if (socket_open == 0) {
+		 // Read Write Socket data
+		 WiFi_Status_t status = WiFi_MODULE_SUCCESS;
 
-			if (socket_open == 0) {
-				/* Read Write Socket data */
-				WiFi_Status_t status = WiFi_MODULE_SUCCESS;
+		 status = wifi_socket_client_open((uint8_t *) console_host,
+		 portnumber, (uint8_t *) protocol, &socket_id);
+		 if (status == WiFi_MODULE_SUCCESS) {
+		 print_uart("\r\n >>Socket Open OK \r\n");
+		 socket_open = 1;
+		 status = wifi_socket_client_write(socket_id, len, data);
+		 if (status == WiFi_MODULE_SUCCESS) {
+		 print_uart("\r\n >>Socket Write OK\r\n");
+		 }
 
-				status = wifi_socket_client_open((uint8_t *) console_host,
-						portnumber, (uint8_t *) protocol, &socket_id);
-				if (status == WiFi_MODULE_SUCCESS) {
-					print_uart("\r\n >>Socket Open OK \r\n");
-					socket_open = 1;
-					status = wifi_socket_client_write(socket_id, len, data);
-					if (status == WiFi_MODULE_SUCCESS) {
-						print_uart("\r\n >>Socket Write OK\r\n");
-					}
+		 } else {
+		 print_uart("Socket connection Error");
+		 }
+		 } else {
+		 print_uart("Socket not opened!");
+		 }
 
-				} else {
-					print_uart("Socket connection Error");
-				}
-			} else {
-				print_uart("Socket not opened!");
-			}
+		 wifi_state = wifi_state_idle;
+		 break;
 
-			wifi_state = wifi_state_idle;
-			break;
+		 case wifi_state_idle:
+		 if (HAL_GetTick() - tickwifi > 500) {
+		 print_uart(".");
+		 tickwifi = HAL_GetTick();
+		 }
+		 break;
 
-		case wifi_state_idle:
-			if(HAL_GetTick()-tickwifi>500){
-			    print_uart(".");
-			    tickwifi = HAL_GetTick();
-			}
-			break;
+		 default:
+		 break;
+		 }
+		 */
 
-		default:
-			break;
-		}
-
+		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 		// toggle led 2
-		if(HAL_GetTick()-tickblink>0){
-			HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-			tickblink = HAL_GetTick();
+		/*
+		 if (HAL_GetTick() - tickblink > 0) {
+		 HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+		 tickblink = HAL_GetTick();
+		 }
+		 */
+
+		uint16_t Size = 10;
+		uint32_t Timeout = 1000;
+
+		// wait WS toggle
+		while(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12)==0);
+		// print_uart_user("1\r\n");
+		while(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12));
+		// print_uart_user("0\r\n");
+		if (HAL_I2S_Receive(&hi2s2, Data, Size, Timeout) == HAL_OK) {
+			myTick++;
+			char str[15];
+
+			int low,high;
+
+			for (i = 0; i < Size; i += 2) {
+				if ((i%4) == 0) {
+					low = (int)(Data[i + 1] >> 9);
+					high = ((int)((Data[i] & 0b0011111111111111)))<<9;
+					int sign = Data[i] & 0b0100000000000000;
+					value = low + high;
+					if (sign != 0) {
+						value -= (int)(1 << 23);
+					}
+
+					// sprintf(str, "%d,%d,%d\r\n", (unsigned int) high, (unsigned int) low, (unsigned int) sign );
+					sprintf(str, "%d\r\n",(int)value);
+					print_uart_user(str);
+				}
+			}
 		}
 
-		uint16_t Data[4];
-		uint16_t Size=4;
-		uint32_t Timeout=10;
-
-		//
-		HAL_I2S_Receive(&hi2s2, Data, Size, Timeout );
 	}
 }
 
@@ -331,9 +376,9 @@ int main(void) {
 void SystemClock_Config(void) {
 	RCC_ClkInitTypeDef RCC_ClkInitStruct;
 	RCC_OscInitTypeDef RCC_OscInitStruct;
-	// gbr
+// gbr
 	RCC_PeriphCLKInitTypeDef PeriphClkInitStruct;
-	// gbr
+// gbr
 
 	/* Enable Power Control clock */
 	__PWR_CLK_ENABLE()
@@ -354,6 +399,7 @@ void SystemClock_Config(void) {
 	RCC_OscInitStruct.PLL.PLLN = 336;
 	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
 	RCC_OscInitStruct.PLL.PLLQ = 7;
+	RCC_OscInitStruct.PLL.PLLR = 2;
 	HAL_RCC_OscConfig(&RCC_OscInitStruct);
 
 	/* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2
@@ -366,12 +412,12 @@ void SystemClock_Config(void) {
 	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2);
 
-	//gbr
+//gbr
 	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S_APB2;
-	PeriphClkInitStruct.PLLI2S.PLLI2SN = 50;
+	PeriphClkInitStruct.PLLI2S.PLLI2SN = 192;
 	PeriphClkInitStruct.PLLI2S.PLLI2SP = RCC_PLLI2SP_DIV2;
 	PeriphClkInitStruct.PLLI2S.PLLI2SM = 16;
-	PeriphClkInitStruct.PLLI2S.PLLI2SR = 6;
+	PeriphClkInitStruct.PLLI2S.PLLI2SR = 2;
 	PeriphClkInitStruct.PLLI2S.PLLI2SQ = 2;
 	PeriphClkInitStruct.PLLI2SDivQ = 1;
 	PeriphClkInitStruct.I2sApb2ClockSelection = RCC_I2SAPB2CLKSOURCE_PLLI2S;
@@ -383,7 +429,7 @@ void SystemClock_Config(void) {
 
 	/* SysTick_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
-	// gbr
+// gbr
 }
 #endif
 
@@ -462,7 +508,7 @@ WiFi_Status_t wifi_get_AP_settings(void) {
 	fflush(stdout);
 	scanf("%s", console_input);
 	printf("\r\n");
-	//HAL_UART_Receive(&UartMsgHandle, (uint8_t *)console_input, 1, 100000);
+//HAL_UART_Receive(&UartMsgHandle, (uint8_t *)console_input, 1, 100000);
 	if (console_input[0] == 'y') {
 		set_AP_config = WIFI_TRUE;
 		printf("Enter the SSID:");
@@ -568,24 +614,23 @@ void ind_wifi_connected() {
 
 void ind_wifi_resuming() {
 	printf("\r\nwifi resuming from sleep user callback... \r\n");
-	//Change the state to connect to socket if not connected
+//Change the state to connect to socket if not connected
 	wifi_state = wifi_state_socket;
 }
 
 /* I2S2 init function */
-void MX_I2S2_Init(void)
-{
+void MX_I2S2_Init(void) {
 
-  hi2s2.Instance = SPI2;
-  hi2s2.Init.Mode = I2S_MODE_MASTER_RX;
-  hi2s2.Init.Standard = I2S_STANDARD_PHILLIPS;
-  hi2s2.Init.DataFormat = I2S_DATAFORMAT_24B;
-  hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_ENABLE;
-  hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_8K;
-  hi2s2.Init.CPOL = I2S_CPOL_LOW;
-  hi2s2.Init.ClockSource = I2S_CLOCK_PLL;
-  hi2s2.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
-  HAL_I2S_Init(&hi2s2);
+	hi2s2.Instance = SPI2;
+	hi2s2.Init.Mode = I2S_MODE_MASTER_RX;
+	hi2s2.Init.Standard = I2S_STANDARD_PHILLIPS;
+	hi2s2.Init.DataFormat = I2S_DATAFORMAT_24B;
+	hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
+	hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_8K;
+	hi2s2.Init.CPOL = I2S_CPOL_LOW;
+	hi2s2.Init.ClockSource = I2S_CLOCK_PLL;
+	hi2s2.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
+	HAL_I2S_Init(&hi2s2);
 
 }
 
