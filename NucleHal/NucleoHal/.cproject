@@ -46,6 +46,7 @@
 									<listOptionValue builtIn="false" value="STM32F446xx"/>
 									<listOptionValue builtIn="false" value="USE_STM32F4XX_NUCLEO"/>
 									<listOptionValue builtIn="false" value="USART_PRINT_MSG"/>
+									<listOptionValue builtIn="false" value="USE_FULL_ASSERT"/>
 								</option>
 								<inputType id="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.input.c.409935573" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.input.c"/>
 								<inputType id="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.input.s.1678812875" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.input.s"/>
@@ -73,6 +74,7 @@
 									<listOptionValue builtIn="false" value="STM32F446xx"/>
 									<listOptionValue builtIn="false" value="USE_STM32F4XX_NUCLEO"/>
 									<listOptionValue builtIn="false" value="USART_PRINT_MSG"/>
+									<listOptionValue builtIn="false" value="USE_FULL_ASSERT"/>
 								</option>
 								<inputType id="fr.ac6.managedbuild.tool.gnu.cross.cpp.compiler.input.cpp.1504886254" superClass="fr.ac6.managedbuild.tool.gnu.cross.cpp.compiler.input.cpp"/>
 								<inputType id="fr.ac6.managedbuild.tool.gnu.cross.cpp.compiler.input.s.1765178564" superClass="fr.ac6.managedbuild.tool.gnu.cross.cpp.compiler.input.s"/>
@@ -158,6 +160,7 @@
 									<listOptionValue builtIn="false" value="STM32F446xx"/>
 									<listOptionValue builtIn="false" value="USE_STM32F4XX_NUCLEO"/>
 									<listOptionValue builtIn="false" value="USART_PRINT_MSG"/>
+									<listOptionValue builtIn="false" value="USE_FULL_ASSERT"/>
 								</option>
 								<inputType id="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.input.c.839495467" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.input.c"/>
 								<inputType id="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.input.s.1602667287" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.input.s"/>
@@ -184,6 +187,7 @@
 									<listOptionValue builtIn="false" value="STM32F446xx"/>
 									<listOptionValue builtIn="false" value="USE_STM32F4XX_NUCLEO"/>
 									<listOptionValue builtIn="false" value="USART_PRINT_MSG"/>
+									<listOptionValue builtIn="false" value="USE_FULL_ASSERT"/>
 								</option>
 								<inputType id="fr.ac6.managedbuild.tool.gnu.cross.cpp.compiler.input.cpp.1199602518" superClass="fr.ac6.managedbuild.tool.gnu.cross.cpp.compiler.input.cpp"/>
 								<inputType id="fr.ac6.managedbuild.tool.gnu.cross.cpp.compiler.input.s.1306272887" superClass="fr.ac6.managedbuild.tool.gnu.cross.cpp.compiler.input.s"/>

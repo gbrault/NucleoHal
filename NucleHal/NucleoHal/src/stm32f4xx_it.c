@@ -48,7 +48,6 @@
 */
 
 /* External variables --------------------------------------------------------*/
-extern DMA_HandleTypeDef hdma_i2s2_ext_rx;
 extern I2S_HandleTypeDef hi2s2;
 extern UART_HandleTypeDef UartWiFiHandle,UartMsgHandle;
 extern TIM_HandleTypeDef    TimHandle, PushTimHandle;
@@ -211,7 +210,9 @@ void SysTick_Handler(void)
 {
   HAL_IncTick();
   Wifi_SysTick_Isr();
+  // gbr
   HAL_SYSTICK_IRQHandler();
+  // gbr
 }
 
 /**
@@ -233,34 +234,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   Wifi_TIM_Handler(htim);
-}
-
-/**
-* @brief This function handles DMA1 stream3 global interrupt.
-*/
-void DMA1_Stream3_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Stream3_IRQn 0 */
-
-  /* USER CODE END DMA1_Stream3_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_i2s2_ext_rx);
-  /* USER CODE BEGIN DMA1_Stream3_IRQn 1 */
-
-  /* USER CODE END DMA1_Stream3_IRQn 1 */
-}
-
-/**
-* @brief This function handles SPI2 global interrupt.
-*/
-void SPI2_IRQHandler(void)
-{
-  /* USER CODE BEGIN SPI2_IRQn 0 */
-
-  /* USER CODE END SPI2_IRQn 0 */
-  HAL_I2S_IRQHandler(&hi2s2);
-  /* USER CODE BEGIN SPI2_IRQn 1 */
-
-  /* USER CODE END SPI2_IRQn 1 */
 }
 
 /******************************************************************************/
@@ -291,6 +264,29 @@ void USARTx_PRINT_IRQHandler(void)
    HAL_UART_IRQHandler(&UartMsgHandle);
 }
 #endif
+
+//gbr
+/******************************************************************************/
+/* STM32F4xx Peripheral Interrupt Handlers                                    */
+/* Add here the Interrupt Handlers for the used peripherals.                  */
+/* For the available peripheral interrupt handler names,                      */
+/* please refer to the startup file (startup_stm32f4xx.s).                    */
+/******************************************************************************/
+
+/**
+* @brief This function handles SPI2 global interrupt.
+*/
+void SPI2_IRQHandler(void)
+{
+  /* USER CODE BEGIN SPI2_IRQn 0 */
+
+  /* USER CODE END SPI2_IRQn 0 */
+  HAL_I2S_IRQHandler(&hi2s2);
+  /* USER CODE BEGIN SPI2_IRQn 1 */
+
+  /* USER CODE END SPI2_IRQn 1 */
+}
+// gbr
 
 /**
   * @}

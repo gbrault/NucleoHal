@@ -59,7 +59,6 @@ void PendSV_Handler(void);
 void SysTick_Handler(void);
 void TIMx_IRQHandler(void);
 void TIMp_IRQHandler(void);
-void DMA2_Stream3_IRQHandler(void);
 
 #ifdef __cplusplus
 }

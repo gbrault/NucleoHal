@@ -138,6 +138,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
+#include <string.h>
+#include <stdio.h>
 
 /** @addtogroup STM32F4xx_HAL_Driver
   * @{
@@ -147,6 +149,7 @@
   * @brief I2S HAL module driver
   * @{
   */
+
 
 #ifdef HAL_I2S_MODULE_ENABLED
 
@@ -571,7 +574,6 @@ HAL_StatusTypeDef HAL_I2S_Receive(I2S_HandleTypeDef *hi2s, uint16_t *pData, uint
       {
         return HAL_TIMEOUT;
       }
-
       (*pData++) = hi2s->Instance->DR;
       hi2s->RxXferCount--;
     }
