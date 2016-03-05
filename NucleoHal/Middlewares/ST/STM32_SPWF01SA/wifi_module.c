@@ -860,11 +860,16 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandleArg)
 
 WiFi_Status_t USART_Receive_AT_Resp(WiFi_AT_CMD_Response_t state)
 {
-
+  // gbr added timeout
+  int tick= HAL_GetTick();
   WiFi_Module_State = state;
   while(AT_Response_Received != WIFI_TRUE) {
 		//do nothing
-	}
+	  if((HAL_GetTick()-tick)>10000){
+		  AT_RESPONSE=WiFi_AT_CMD_RESP_ERROR;
+		  break;
+	  }
+  }
   AT_Response_Received = WIFI_FALSE;
   return AT_RESPONSE;    
   
@@ -2105,16 +2110,19 @@ void Reset_AT_CMD_Buffer()
 * @param  line: assert_param error line source number
 * @retval None
 */
+/*
 void assert_failed(uint8_t* file, uint32_t line)
 { 
-  /* User can add his own implementation to report the file name and line number,
-  ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  // User can add his own implementation to report the file name and line number,
+  // ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line)
   
-  /* Infinite loop */
+  // Infinite loop
+
   while (1)
   {
   }
 }
+*/
 
 #endif
 

@@ -62,6 +62,7 @@ int uartReceiveChar(void);
 
 extern UART_HandleTypeDef UartMsgHandle;
 #define UartHandle UartMsgHandle
+HAL_StatusTypeDef _UART_WaitOnFlagUntilTimeout(UART_HandleTypeDef *huart, uint32_t Flag, FlagStatus Status, uint32_t Timeout);
 
 /** @brief Asks user to input an integer number and returns its value
  * @param message A message to be prompted on the console when asking value
@@ -96,6 +97,19 @@ int uartSendChar(int ch)
   return ch;
 }
 
+/** @brief check if a character is available from serial port
+ * @param None
+ * @retval 0 no Char available 1 Char available
+ */
+
+int inputAvailable() {
+	int res = 0;
+	if (!_UART_WaitOnFlagUntilTimeout(&UartHandle, UART_FLAG_RXNE, RESET, 0 /* timeout 0 */)
+			!= HAL_OK) {
+		res = 1;
+	}
+	return res;
+}
 /** @brief Receives a character from serial port
  * @param None
  * @retval Character received
@@ -203,6 +217,54 @@ int __io_putchar(int ch)
 int __io_getchar(void)
 {
   return uartReceiveChar();
+}
+
+/**
+  * @brief  This function handles UART Communication Timeout.
+  * @param  huart: pointer to a UART_HandleTypeDef structure that contains
+  *                the configuration information for the specified UART module.
+  * @param  Flag: specifies the UART flag to check.
+  * @param  Status: The new Flag status (SET or RESET).
+  * @param  Timeout: Timeout duration
+  * @retval HAL status
+  */
+HAL_StatusTypeDef _UART_WaitOnFlagUntilTimeout(UART_HandleTypeDef *huart, uint32_t Flag, FlagStatus Status, uint32_t Timeout)
+{
+  uint32_t tickstart = 0;
+
+  /* Get tick */
+  tickstart = HAL_GetTick();
+
+  /* Wait until flag is set */
+  if(Status == RESET)
+  {
+    while(__HAL_UART_GET_FLAG(huart, Flag) == RESET)
+    {
+      /* Check for the Timeout */
+      if(Timeout != HAL_MAX_DELAY)
+      {
+        if((Timeout == 0)||((HAL_GetTick() - tickstart ) > Timeout))
+        {
+          return HAL_TIMEOUT;
+        }
+      }
+    }
+  }
+  else
+  {
+    while(__HAL_UART_GET_FLAG(huart, Flag) != RESET)
+    {
+      /* Check for the Timeout */
+      if(Timeout != HAL_MAX_DELAY)
+      {
+        if((Timeout == 0)||((HAL_GetTick() - tickstart ) > Timeout))
+        {
+          return HAL_TIMEOUT;
+        }
+      }
+    }
+  }
+  return HAL_OK;
 }
 
 #else
