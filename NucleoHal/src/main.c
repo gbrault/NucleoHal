@@ -68,14 +68,17 @@ int inputAvailable();
 
 /* Private variables ---------------------------------------------------------*/
 I2S_HandleTypeDef hi2s2;
+DMA_HandleTypeDef hdma_spi2_rx;
 static GPIO_InitTypeDef GPIO_InitStruct;
+extern UART_HandleTypeDef UartMsgHandle;
+extern char print_msg_buff[512];
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 WiFi_Status_t wifi_get_AP_settings(void);
 void MX_I2S2_Init(void);
-extern UART_HandleTypeDef UartMsgHandle;
-extern char print_msg_buff[512];
+void MX_DMA_Init(void);
+void ProcessAudio();
 
 /* Private functions ---------------------------------------------------------*/
 #ifdef USART_PRINT_MSG
@@ -112,8 +115,8 @@ char console_psk[20];
 char console_host[20];
 wifi_bool set_AP_config = WIFI_FALSE, SSID_found = WIFI_FALSE;
 
-char * ssid = "TP-LINK_POCKET_3040_801526"; // "NETGEAR28"; // "AndroidHotspot4629"; // "NETGEAR54";
-char * seckey = ""; // "vanillariver618"; // "gb080556";
+char * ssid = "TP-LINK_POCKET_3040_801526"; // "NETGEAR28";  // "NETGEAR28"; // "AndroidHotspot4629"; // "NETGEAR54";
+char * seckey = ""; //"vanillariver618";
 WiFi_Priv_Mode mode = None; // WPA_Personal;
 
 uint16_t len; /*Take care to change the length of the text we are sending*/
@@ -156,9 +159,15 @@ void init_blink() {
  * @param  None
  * @retval None
  */
-static long myTick = 0;
-static int32_t value;
-uint16_t Data[48];
+// static long myTick = 0;
+// static int32_t value;
+uint16_t Data1[1000];
+uint16_t Data2[1000];
+int32_t Audio[250];
+uint16_t Size = 40;
+uint8_t Ready=0;
+uint16_t *produce_ptr, *consume_ptr;
+uint8_t which;
 int main(void) {
 	uint8_t i = 0;
 	uint32_t tickblink = 0;
@@ -191,9 +200,10 @@ int main(void) {
 #endif
 
 	init_blink();
+	MX_DMA_Init();
 	MX_I2S2_Init();
-	__HAL_I2S_ENABLE(&hi2s2);
 
+	/*
 	config.power = sleep;
 	config.power_level = high;
 	config.dhcp = on; //use DHCP IP address
@@ -208,9 +218,15 @@ int main(void) {
 	}
 
 	wifi_state = wifi_state_reset;
+	*/
+
+	produce_ptr=Data1;
+	which=1;
+	consume_ptr=NULL;
+	HAL_I2S_Receive_DMA(&hi2s2, produce_ptr, Size/2);
 
 	while (1) {
-
+    /*
 		switch (wifi_state) {
 		case wifi_state_reset:
 			print_uart("\r\n\nInitializing the wifi module...")
@@ -223,8 +239,9 @@ int main(void) {
 				return 0;
 			}
 
-			print_uart("\r\n\nConfig OK \r\n\n");
-			wifi_state=wifi_state_ready;
+			print_uart("\r\n\nConfig OK \r\n\n")
+			;
+			wifi_state = wifi_state_ready;
 			socket_open = 0;
 			break;
 
@@ -237,8 +254,8 @@ int main(void) {
 
 			if (status == WiFi_MODULE_SUCCESS) {
 				for (i = 0; i < WIFI_SCAN_BUFFER_LIST; i++) {
-					//print_uart(net_scan[i].ssid);
-					//print_uart("\r\n");
+					print_uart(net_scan[i].ssid);
+					print_uart("\r\n");
 					if (((char *) strstr((const char *) net_scan[i].ssid,
 							(const char *) console_ssid)) != NULL) {
 						print_uart(
@@ -252,6 +269,7 @@ int main(void) {
 				}
 				if (!SSID_found) {
 					print_uart("\r\nGiven SSID not found!\r\n");
+					NVIC_SystemReset();
 				}
 				memset(net_scan, 0x00, sizeof(net_scan));
 
@@ -278,7 +296,8 @@ int main(void) {
 			break;
 
 		case wifi_state_socket:
-			print_uart("\r\n >>Connecting to socket\r\n");
+			print_uart("\r\n >>Connecting to socket\r\n")
+			;
 			if (socket_open == 0) {
 				// Read Write Socket data
 				WiFi_Status_t status = WiFi_MODULE_SUCCESS;
@@ -291,6 +310,15 @@ int main(void) {
 					status = wifi_socket_client_write(socket_id, len, data);
 					if (status == WiFi_MODULE_SUCCESS) {
 						print_uart("\r\n >>Socket Write OK\r\n");
+						produce_ptr=Data1;
+						which=1;
+						consume_ptr=NULL;
+
+						//__HAL_I2S_ENABLE(&hi2s2);
+						//while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == 0);
+						//while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12));
+
+						HAL_I2S_Receive_DMA(&hi2s2, produce_ptr, Size/2);
 					}
 				} else {
 					print_uart("Socket connection Error");
@@ -314,63 +342,125 @@ int main(void) {
 		default:
 			break;
 		}
+		*/
 
-		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+		if(Ready==1){
+			HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+			int i;
+			char buf[100];
+			ProcessAudio();
+			for(i=0; i<((Size/4)-1); i++){
+				// sprintf(buf,"$%d:%d; ",(int)Audio[i],(int)Audio[i+1]);
+				sprintf(buf,"$%ld;",Audio[i]);
+				print_uart_user(buf);
+			}
+			print_uart_user("\r\n\r\n");
+		}
+
 		// toggle led 2
-		/*
+         /*
 		 if (HAL_GetTick() - tickblink > 0) {
 		 HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 		 tickblink = HAL_GetTick();
 		 }
 		 */
 
-		uint16_t Size = 10;
-		uint32_t Timeout = 1000;
+/*
 
-		// wait WS toggle
-		while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == 0)
-			;
-		// print_uart_user("1\r\n");
-		while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12))
-			;
-		// print_uart_user("0\r\n");
-		if (HAL_I2S_Receive(&hi2s2, Data, Size, Timeout) == HAL_OK) {
-			myTick++;
-			char str[1000];
-			str[0]='\0';
+		uint32_t Timeout = 10000;
+		if ((wifi_state == wifi_state_idle) && (socket_open == 1)) {
+			// wait WS toggle
+			while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == 0)
+				;
+			// print_uart_user("1\r\n");
+			while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12))
+				;
+			// print_uart_user("0\r\n");
+			if (HAL_I2S_Receive(&hi2s2, Data, Size, Timeout) == HAL_OK) {
+				myTick++;
+				char str[1000];
+				char temp[20];
+				str[0] = '\0';
 
-			int low, high;
+				int low, high;
 
-			int exit=0;
+				int exit = 0;
+				len=0;
 
-			for (i = 0; i < Size; i += 2) {
-				if(exit==-1) break;
-				if ((i % 4) == 0) {
-					low = (int) (Data[i + 1] >> 9);
-					high = ((int) ((Data[i] & 0b0011111111111111))) << 9;
-					int sign = Data[i] & 0b0100000000000000;
-					value = low + high;
-					if (sign != 0) {
-						value -= (int) (1 << 23);
+				for (i = 0; i < Size; i += 2) {
+					if (exit == -1)
+						break;
+					if ((i % 4) == 0) {
+						low = (int) (Data[i + 1] >> 9);
+						high = ((int) ((Data[i] & 0b0011111111111111))) << 9;
+						int sign = Data[i] & 0b0100000000000000;
+						value = low + high;
+						if (sign != 0) {
+							value -= (int) (1 << 23);
+						}
+						sprintf(temp,"$%d;",(int)value);
+						// sprintf(str, "%d,%d,%d\r\n", (unsigned int) high, (unsigned int) low, (unsigned int) sign );
+						sprintf(&str[len], "%s",  temp);
+						len += strlen(temp);
+						//print_uart_user(str);
 					}
+				}
+				if (socket_open == 1) {
+					status = wifi_socket_client_write(socket_id, len, str);
+					if (status != WiFi_MODULE_SUCCESS) {
+						print_uart("\r\n >>Socket Write error\r\n");
+						NVIC_SystemReset();
+					}
+				}
+			}
 
-					// sprintf(str, "%d,%d,%d\r\n", (unsigned int) high, (unsigned int) low, (unsigned int) sign );
-					sprintf(&str[strlen(str)], "$%d;", (int) value);
-					print_uart_user(str);
-				}
-			}
-			if (socket_open == 1) {
-				len = strlen(str);
-				status = wifi_socket_client_write(socket_id, len, str);
-				if (status != WiFi_MODULE_SUCCESS) {
-					print_uart("\r\n >>Socket Write error\r\n");
-					NVIC_SystemReset();
-				}
-			}
 		}
-
+*/
 	}
+
 }
+
+void ProcessAudio(){
+	int i;
+	for(i=0; i< (Size-1);i+=2){
+		if ((i % 4)==2) {
+			uint32_t high = (((uint32_t) (consume_ptr[i] & 0x3fff)) << 9);
+			high &= 0x00ffffff;
+			uint32_t low = ((consume_ptr[i + 1] & 0xff80) >> 7);
+			low &= 0x00ffffff;
+			int32_t value = (high + low);
+			int sign = consume_ptr[i] & 0x4000;
+			if (sign != 0) {
+				value = value - (1 << 23);
+			}
+			Audio[i / 4] = value;
+		}
+	}
+	Ready=0;
+}
+
+
+void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s){
+	//__HAL_I2S_DISABLE(hi2s);
+	// HAL_I2S_DMAStop(hi2s);
+	if (which==1){
+		produce_ptr=Data2;
+		consume_ptr=Data1;
+		which=2;
+	} else {
+		produce_ptr=Data1;
+		consume_ptr=Data2;
+		which=1;
+	}
+	HAL_I2S_Receive_DMA(&hi2s2, produce_ptr, Size/2);
+	Ready=1;
+}
+
+void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s){
+	MX_I2S2_Init();
+	HAL_I2S_RxCpltCallback(hi2s);
+}
+
 
 /**
  * @brief  System Clock Configuration
@@ -449,7 +539,6 @@ void SystemClock_Config(void) {
 }
 #endif
 
-
 #ifdef  USE_FULL_ASSERT
 
 /**
@@ -459,14 +548,12 @@ void SystemClock_Config(void) {
  * @param  line: assert_param error line source number
  * @retval None
  */
-void assert_failed(uint8_t* file, uint32_t line)
-{
+void assert_failed(uint8_t* file, uint32_t line) {
 	/* User can add his own implementation to report the file name and line number,
 	 ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-	printf("Wrong parameters value: file %s on line %d\r\n", file, (int)line);
+	printf("Wrong parameters value: file %s on line %d\r\n", file, (int) line);
 	/* Infinite loop */
-	while (1)
-	{
+	while (1) {
 	}
 }
 #endif
@@ -477,7 +564,7 @@ void assert_failed(uint8_t* file, uint32_t line)
  * @retval WiFi_Status_t
  */
 WiFi_Status_t wifi_get_AP_settings(void) {
-	int countdown=10;
+	int countdown = 10;
 	WiFi_Status_t status = WiFi_MODULE_SUCCESS;
 	printf("\r\n\n/********************************************************\n");
 	printf("\r *                                                      *\n");
@@ -488,15 +575,16 @@ WiFi_Status_t wifi_get_AP_settings(void) {
 	printf("\r *******************************************************/\n");
 	printf("\r\nDo you want to setup SSID?(y/n):");
 	fflush(stdout);
-	while(!inputAvailable()){  // give 10 sec for the operator to chose WIFI tuning
+	while (!inputAvailable()) { // give 10 sec for the operator to chose WIFI tuning
 		countdown--;
-		if(countdown==0) break;
-	    HAL_Delay(1000);  // wait 1 sec
+		if (countdown == 0)
+			break;
+		HAL_Delay(1000);  // wait 1 sec
 	}
-	if(countdown!=0) {
+	if (countdown != 0) {
 		scanf("%s", console_input);
 	} else {
-		console_input[0]='n';
+		console_input[0] = 'n';
 	}
 	printf("\r\n");
 //HAL_UART_Receive(&UartMsgHandle, (uint8_t *)console_input, 1, 100000);
@@ -615,14 +703,28 @@ void MX_I2S2_Init(void) {
 
 	hi2s2.Instance = SPI2;
 	hi2s2.Init.Mode = I2S_MODE_MASTER_RX;
-	hi2s2.Init.Standard = I2S_STANDARD_PHILLIPS;
-	hi2s2.Init.DataFormat = I2S_DATAFORMAT_24B;
+	hi2s2.Init.Standard = I2S_STANDARD_MSB; // I2S_STANDARD_PCM_LONG;// I2S_STANDARD_MSB; //I2S_STANDARD_PHILIPS; //I2S_STANDARD_LSB; //I2S_STANDARD_MSB;// I2S_STANDARD_PCM_LONG;
+	hi2s2.Init.DataFormat = I2S_DATAFORMAT_32B;
 	hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
-	hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_48K;
+	hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_8K;
 	hi2s2.Init.CPOL = I2S_CPOL_LOW;
 	hi2s2.Init.ClockSource = I2S_CLOCK_PLL;
 	hi2s2.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
 	HAL_I2S_Init(&hi2s2);
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+void MX_DMA_Init(void)
+{
+  /* DMA controller clock enable */
+  __DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
 
 }
 
